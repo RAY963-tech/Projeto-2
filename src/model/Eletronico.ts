@@ -1,4 +1,4 @@
-import { Produto } from "../model/Produto";
+import { Produto } from "./Produto";
 
 export class Eletronico extends Produto {
     constructor(
@@ -10,10 +10,5 @@ export class Eletronico extends Produto {
         public garantia: number
     ) {
         super(id, nome, preco, quantidade);
-    }
-
-    visualizar(): void {
-        super.visualizar();
-        console.log(`Marca: ${this.marca}, Garantia: ${this.garantia} meses`);
     }
 }

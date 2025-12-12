@@ -1,82 +1,151 @@
-import { ProdutoController } from "./controller/ProdutoController";
-import { Eletronico } from "./model/Eletronico";
-import { Entrada } from "./util/Entrada";
-import { Cores } from "./util/Cores";
-import { Banner } from "./view/Banner";
+import { Entrada } from './util/Entrada';
+import { Cores } from './util/Cores';
+import { ProdutoController } from './controller/ProdutoController';
+import { VendaController } from './controller/VendaController';
+import { Eletronico } from './model/Eletronico';
+import { Notebook } from './Notebook';
+import { Cliente } from './model/Cliente';
+import { Venda } from './model/Venda';
+import { Banner } from './view/Banner';
 
 const produtos = new ProdutoController();
+const vendas = new VendaController();
+let clientes: Cliente[] = [];
 
-console.log(Cores.Bright + Banner + Cores.Reset);
+console.log(Cores.Yellow + Banner + Cores.Reset);
 
-while(true){
-    console.log(Cores.Yellow + "\n========= MENU =========" + Cores.Reset);
-    console.log(Cores.Green + "1 - Listar todos os produtos" + Cores.Reset);
-    console.log(Cores.Green + "2 - Cadastrar produto" + Cores.Reset);
-    console.log(Cores.Green + "3 - Buscar produto por ID" + Cores.Reset);
-    console.log(Cores.Green + "4 - Atualizar produto" + Cores.Reset);
-    console.log(Cores.Green + "5 - Deletar produto" + Cores.Reset);
-    console.log(Cores.Red + "0 - Sair" + Cores.Reset);
-    console.log(Cores.Yellow + "========================" + Cores.Reset);
+// ================= Funções do Menu =================
 
-    const opcao = Entrada.perguntaInt("Escolha uma opção: ");
+function cadastrarProduto() {
+    const nome = Entrada.perguntaString("Nome do produto: ");
+    const preco = Entrada.perguntaFloat("Preço: ");
+    const quantidade = Entrada.perguntaInt("Quantidade: ");
+    const marca = Entrada.perguntaString("Marca: ");
+    const garantia = Entrada.perguntaInt("Garantia (meses): ");
 
-    switch(opcao){
-        case 1:
-            produtos.listarTodos();
-            break;
-
-        case 2:
-            const nome = Entrada.perguntaString("Nome do produto: ");
-            const preco = Entrada.perguntaFloat("Preço: ");
-            const quantidade = Entrada.perguntaInt("Quantidade: ");
-            const marca = Entrada.perguntaString("Marca: ");
-            const garantia = Entrada.perguntaInt("Garantia (meses): ");
-            const eletronico = new Eletronico(0, nome, preco, quantidade, marca, garantia);
-            produtos.cadastrar(eletronico);
-            break;
-
-        case 3:
-            const buscarId = Entrada.perguntaInt("Digite o ID do produto: ");
-            const encontrado = produtos.procurarPorId(buscarId);
-            if(encontrado){
-                console.log(Cores.Bright + "Produto encontrado:" + Cores.Reset);
-                encontrado.visualizar();
-            } else {
-                console.log(Cores.Red + "Produto não encontrado!" + Cores.Reset);
-            }
-            break;
-
-        case 4:
-            const atualizarId = Entrada.perguntaInt("ID do produto a atualizar: ");
-            const prodAtualizar = produtos.procurarPorId(atualizarId);
-            if(prodAtualizar){
-                const novoNome = Entrada.perguntaString("Novo nome: ");
-                const novoPreco = Entrada.perguntaFloat("Novo preço: ");
-                const novaQuantidade = Entrada.perguntaInt("Nova quantidade: ");
-                const novaMarca = Entrada.perguntaString("Nova marca: ");
-                const novaGarantia = Entrada.perguntaInt("Nova garantia: ");
-                const atualizado = new Eletronico(atualizarId, novoNome, novoPreco, 
-                novaQuantidade,novaMarca, novaGarantia);
-                produtos.atualizar(atualizado);
-            } else {
-                console.log(Cores.Red + "Produto não encontrado!" + Cores.Reset);
-            }
-            break;
-
-        case 5:
-            const deletarId = Entrada.perguntaInt("ID do produto a deletar: ");
-            produtos.deletar(deletarId);
-            break;
-
-        case 0:
-            console.log(Cores.Bright + "Sistema finalizado." + Cores.Reset);
-            process.exit(0);
-
-        default:
-            console.log(Cores.Red + "Opção inválida!" + Cores.Reset);
-    }
-
-    console.log("\nPressione ENTER para continuar...");
-    Entrada.perguntaString("");
+    const produto = new Eletronico(0, nome, preco, quantidade, marca, garantia);
+    produtos.cadastrar(produto);
 }
 
+function buscarProduto() {
+    const id = Entrada.perguntaInt("Digite o ID do produto: ");
+    const encontrado = produtos.procurarPorId(id);
+    if (encontrado) {
+        encontrado.visualizar();
+    } else {
+        console.log("Produto não encontrado.");
+    }
+}
+
+function atualizarProduto() {
+    const id = Entrada.perguntaInt("ID do produto para atualizar: ");
+    const prod = produtos.procurarPorId(id);
+    if (prod) {
+        prod.nome = Entrada.perguntaString("Novo nome: ");
+        prod.preco = Entrada.perguntaFloat("Novo preço: ");
+        prod.quantidade = Entrada.perguntaInt("Nova quantidade: ");
+        console.log("Produto atualizado!");
+    } else {
+        console.log("Produto não encontrado.");
+    }
+}
+
+function deletarProduto() {
+    const id = Entrada.perguntaInt("ID do produto para deletar: ");
+    produtos.deletar(id);
+}
+
+function filtrarPorNome() {
+    const nome = Entrada.perguntaString("Nome para filtrar: ");
+    produtos.filtrarPorNome(nome);
+}
+
+function filtrarPorMarca() {
+    const marca = Entrada.perguntaString("Marca para filtrar: ");
+    produtos.filtrarPorMarca(marca);
+}
+
+function registrarVenda() {
+    const nomeCliente = Entrada.perguntaString("Nome do cliente: ");
+    const cliente = new Cliente(nomeCliente);
+    clientes.push(cliente);
+
+    const idProduto = Entrada.perguntaInt("ID do produto: ");
+    const produto = produtos.procurarPorId(idProduto);
+    if (!produto) {
+        console.log("Produto não encontrado.");
+        return;
+    }
+
+    const quantidade = Entrada.perguntaInt("Quantidade: ");
+    cliente.adicionarAoCarrinho(produto, quantidade);
+
+    const venda = new Venda(0, cliente, produto, quantidade);
+    vendas.registrarVenda(venda);
+    cliente.finalizarCompra();
+}
+
+function listarVendas() {
+    vendas.listarVendas();
+}
+
+// ================= Menu Principal =================
+
+function main() {
+    let opcao: number;
+
+    do {
+        console.log(Cores.Green + "\nMENU PRINCIPAL" + Cores.Reset);
+        console.log("1 - Listar todos os produtos");
+        console.log("2 - Cadastrar Produto");
+        console.log("3 - Buscar produto por ID");
+        console.log("4 - Atualizar produto");
+        console.log("5 - Deletar produto");
+        console.log("6 - Filtrar por nome");
+        console.log("7 - Filtrar por marca");
+        console.log("8 - Registrar Venda");
+        console.log("9 - Listar Vendas");
+        console.log("0 - Sair");
+
+        opcao = Entrada.perguntaInt("Escolha uma opção: ");
+
+        switch(opcao) {
+            case 1:
+                produtos.listarTodos();
+                break;
+            case 2:
+                cadastrarProduto();
+                break;
+            case 3:
+                buscarProduto();
+                break;
+            case 4:
+                atualizarProduto();
+                break;
+            case 5:
+                deletarProduto();
+                break;
+            case 6:
+                filtrarPorNome();
+                break;
+            case 7:
+                filtrarPorMarca();
+                break;
+            case 8:
+                registrarVenda();
+                break;
+            case 9:
+                listarVendas();
+                break;
+            case 0:
+                console.log(Cores.Yellow + "Sistema finalizado." + Cores.Reset);
+                process.exit(0);
+            default:
+                console.log(Cores.Red + "Opção inválida!" + Cores.Reset);
+                break;
+        }
+
+    } while(opcao !== 0);
+}
+
+main();

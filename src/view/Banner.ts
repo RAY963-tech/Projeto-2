@@ -1,5 +1,5 @@
 export const Banner = `
 ==============================
-   SISTEMA DE ESTOQUE
+   SISTEMA DE ESTOQUE  - E-COMMERCESS
 ==============================
 `;
